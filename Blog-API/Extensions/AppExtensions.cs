@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Blog_API.Extensions
+namespace Blog.API.Extensions
 {
     public static class AppExtensions
     {

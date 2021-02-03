@@ -1,0 +1,140 @@
+version: "3.9"  # optional since v1.27.0
+services:
+  couchbase1:
+    container_name: couchbase1
+    image: couchbase/server
+    volumes:
+      - type: volume
+        source: couchbase1
+        target: /opt/couchbase1/var
+    networks:
+      couchbase-net:
+        ipv4_address: 172.16.101.11
+    ports:
+      - 8091:8091
+      - 8092:8092
+      - 8093:8093
+      - 8094:8094
+      - 11210:11210
+    ulimits:
+      nproc: 65535
+      core:
+        soft: 100000000
+        hard: 100000000
+      memlock:
+        soft: 100000000
+        hard: 100000000
+      nofile:
+        soft: 40960
+        hard: 40960
+  couchbase2:
+    container_name: couchbase2
+    image: couchbase/server
+    volumes:
+      - type: volume
+        source: couchbase2
+        target: /opt/couchbase2/var
+    networks:
+      couchbase-net:
+        ipv4_address: 172.16.101.12
+    links:
+      - couchbase1
+    depends_on:
+      - couchbase1
+    ports:
+      - 18091:8091
+      - 18092:8092
+      - 18093:8093
+      - 18094:8094
+      - 21210:11210
+  couchbase3:
+    container_name: couchbase3
+    image: couchbase/server
+    volumes:
+      - type: volume
+        source: couchbase3
+        target: /opt/couchbase3/var
+    networks:
+      couchbase-net:
+        ipv4_address: 172.16.101.13
+    links:
+      - couchbase2
+    depends_on:
+      - couchbase2
+    ports:
+      - 28091:8091
+      - 28092:8092
+      - 28093:8093
+      - 28094:8094
+      - 31210:11210
+    ulimits:
+      nproc: 65535
+      core:
+        soft: 100000000
+        hard: 100000000
+      memlock:
+        soft: 100000000
+        hard: 100000000
+      nofile:
+        soft: 40960
+        hard: 40960
+
+  consul:
+    image: consul
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    command: agent -server -bootstrap -ui -client=0.0.0.0
+    
+  gateway:
+    depends_on:
+      - consul
+      - couchbase1
+      - couchbase2
+      - couchbase3
+
+    image: blogapi
+    build:
+      context: .
+      dockerfile: API-Gateway/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:5001
+    networks:
+      couchbase-net:
+        ipv4_address: 172.16.101.15
+    ports:
+      - "5001:80"
+    
+  blog-api:
+    depends_on:
+      - consul
+      - gateway
+      - couchbase1
+      - couchbase2
+      - couchbase3
+
+    image: blogapi
+    build:
+      context: .
+      dockerfile: Blog-API/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:5011
+    networks:
+      couchbase-net:
+        ipv4_address: 172.16.101.14
+    ports:
+      - "5011:80"
+
+networks:
+  couchbase-net:
+    name: couchbase-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.101.0/24
+volumes:
+  couchbase1:
+  couchbase2:
+  couchbase3:

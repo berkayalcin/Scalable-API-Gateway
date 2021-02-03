@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Blog_API.Controllers
+namespace Blog.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

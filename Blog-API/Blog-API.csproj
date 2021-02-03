@@ -2,7 +2,10 @@
 
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
-        <RootNamespace>Blog_API</RootNamespace>
+        <RootNamespace>Blog.API</RootNamespace>
+        <AssemblyName>blog_api.dll</AssemblyName>
+        <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     </PropertyGroup>
 
     <ItemGroup>
