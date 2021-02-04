@@ -1,4 +1,4 @@
-version: "3.9"  # optional since v1.27.0
+version: "3.9"
 services:
   couchbase1:
     container_name: couchbase1
@@ -84,48 +84,54 @@ services:
     ports:
       - "8500:8500"
       - "8600:8600/udp"
+    expose:
+      - "8500"
     command: agent -server -bootstrap -ui -client=0.0.0.0
-    
+    networks: 
+      couchbase-net:
+        ipv4_address: 172.16.101.17
+
+
   gateway:
     depends_on:
-      - consul
-      - couchbase1
-      - couchbase2
-      - couchbase3
-
-    image: blogapi
+      - blog-api
+    image: api-gateway
     build:
       context: .
-      dockerfile: API-Gateway/Dockerfile
+      dockerfile: Dockerfile-API-Gateway
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://0.0.0.0:5001
+      - ASPNETCORE_URLS=https://0.0.0.0:5001
     networks:
       couchbase-net:
         ipv4_address: 172.16.101.15
     ports:
-      - "5001:80"
-    
+      - "5001:5001"
+    expose:
+      - "5001"
+    links:
+      - consul
+
   blog-api:
     depends_on:
       - consul
-      - gateway
       - couchbase1
       - couchbase2
       - couchbase3
-
-    image: blogapi
+    image: blog-api
     build:
       context: .
-      dockerfile: Blog-API/Dockerfile
+      dockerfile: Dockerfile-Blog-API
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://0.0.0.0:5011
+      - ASPNETCORE_URLS=https://0.0.0.0:5011
     networks:
       couchbase-net:
-        ipv4_address: 172.16.101.14
+        ipv4_address: 172.16.101.16
     ports:
-      - "5011:80"
+      - "5011:5011"
+    expose:
+      - "5011"
 
 networks:
   couchbase-net:

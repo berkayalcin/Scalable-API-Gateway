@@ -7,6 +7,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{B0516DC5-B48C-413D-AB03-5122BA6F8C66}"
 ProjectSection(SolutionItems) = preProject
 	docker-compose.yml = docker-compose.yml
+	Dockerfile-API-Gateway = Dockerfile-API-Gateway
+	Dockerfile-Blog-API = Dockerfile-Blog-API
 EndProjectSection
 EndProject
 Global

@@ -23,6 +23,7 @@ namespace Blog.API
             services.AddControllers();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "Blog_API", Version = "v1"}); });
             services.AddConsulConfig(Configuration);
+            services.AddHealthChecks();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -34,6 +35,8 @@ namespace Blog.API
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Blog_API v1"));
             }
+
+            app.UseHealthChecks("/healthcheck");
 
             app.UseConsul();  
 

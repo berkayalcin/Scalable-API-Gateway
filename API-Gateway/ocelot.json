@@ -2,10 +2,10 @@
   "Routes": [
     {
       "DownstreamPathTemplate": "/api/post",
-      "DownstreamScheme": "https",
+      "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
+          "Host": "blog-api",
           "Port": 5011
         }
       ],
@@ -27,15 +27,16 @@
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "https://localhost:5001",
+    "BaseUrl": "http://localhost:5001",
     "RequestIdKey": "OcRequestId",
     "UseTracing": true,
     "ServiceDiscoveryProvider": {
-      "Scheme": "https",
-      "Host": "localhost",
+      "Scheme": "http",
+      "Host": "consul",
       "Port": 8500,
       "Type": "PollConsul",
       "PollingInterval": 100
-    }
+    },
+    "DangerousAcceptAnyServerCertificateValidator": true
   }
 }

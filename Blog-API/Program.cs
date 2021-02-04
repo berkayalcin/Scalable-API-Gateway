@@ -15,7 +15,7 @@ namespace Blog.API
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.UseUrls("https://localhost:5011");
+                    webBuilder.UseUrls("http://blog-api:5011");
                 });
     }
 }
