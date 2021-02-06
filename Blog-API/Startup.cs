@@ -1,4 +1,11 @@
+using System;
+using System.Linq;
+using Blog.API.Domain.Repositories;
+using Blog.API.Domain.Services.Post;
+using Blog.API.Domain.Services.Providers;
 using Blog.API.Extensions;
+using Couchbase.Configuration.Client;
+using Couchbase.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -24,6 +31,26 @@ namespace Blog.API
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "Blog_API", Version = "v1"}); });
             services.AddConsulConfig(Configuration);
             services.AddHealthChecks();
+            services.AddCouchbase(client =>
+                {
+                    var ipList = Configuration["CouchbaseServerUrl"].Split(',').Select(ip => new Uri(ip)).ToList();
+                    client.Servers = ipList;
+                    client.UseSsl = false;
+                    client.Username = Configuration["CouchbaseUserName"];
+                    client.Password = Configuration["CouchbasePassword"];
+                    client.UseConnectionPooling = true;
+                    client.ConnectionPool = new ConnectionPoolDefinition
+                    {
+                        SendTimeout = 120000,
+                        MaxSize = 20,
+                        MinSize = 20
+                    };
+                    client.OperationLifespan = 90000;
+                })
+                .AddCouchbaseBucket<IPostCouchbaseProvider>("Posts");
+
+            services.AddScoped<IPostRepository, PostRepository>();
+            services.AddScoped<IPostService, PostService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -38,7 +65,7 @@ namespace Blog.API
 
             app.UseHealthChecks("/healthcheck");
 
-            app.UseConsul();  
+            app.UseConsul();
 
             app.UseHttpsRedirection();
 

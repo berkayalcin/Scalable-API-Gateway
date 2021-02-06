@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Blog.API.Domain.Services.Post;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -10,16 +11,18 @@ namespace Blog.API.Controllers
     public class PostController : ControllerBase
     {
         private readonly ILogger<PostController> _logger;
+        private readonly IPostService _postService;
 
-        public PostController(ILogger<PostController> logger)
+        public PostController(ILogger<PostController> logger, IPostService postService)
         {
             _logger = logger;
+            _postService = postService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            Console.WriteLine("Request Arrived");
+            var posts = await _postService.GetAll();
             return Ok("Working");
         }
     }

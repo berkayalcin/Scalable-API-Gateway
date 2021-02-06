@@ -1,12 +1,13 @@
 version: "3.9"
 services:
   couchbase1:
+    tty: true
+    stdin_open: true
     container_name: couchbase1
     image: couchbase/server
+    restart: always
     volumes:
-      - type: volume
-        source: couchbase1
-        target: /opt/couchbase1/var
+        - couchbase1-data:/var/lib/couchbase1/data
     networks:
       couchbase-net:
         ipv4_address: 172.16.101.11
@@ -28,12 +29,13 @@ services:
         soft: 40960
         hard: 40960
   couchbase2:
+    tty: true
+    stdin_open: true
+    restart: always
     container_name: couchbase2
     image: couchbase/server
     volumes:
-      - type: volume
-        source: couchbase2
-        target: /opt/couchbase2/var
+      - couchbase2-data:/var/lib/couchbase2/data
     networks:
       couchbase-net:
         ipv4_address: 172.16.101.12
@@ -48,12 +50,13 @@ services:
       - 18094:8094
       - 21210:11210
   couchbase3:
+    tty: true
+    stdin_open: true
+    restart: always
     container_name: couchbase3
     image: couchbase/server
     volumes:
-      - type: volume
-        source: couchbase3
-        target: /opt/couchbase3/var
+      - couchbase3-data:/var/lib/couchbase3/data
     networks:
       couchbase-net:
         ipv4_address: 172.16.101.13
@@ -81,6 +84,7 @@ services:
 
   consul:
     image: consul
+    restart: always
     ports:
       - "8500:8500"
       - "8600:8600/udp"
@@ -93,8 +97,14 @@ services:
 
 
   gateway:
+    restart: always
     depends_on:
       - blog-api
+      - blog-api-2
+      - couchbase1
+      - couchbase2
+      - couchbase3
+      - consul
     image: api-gateway
     build:
       context: .
@@ -113,6 +123,7 @@ services:
       - consul
 
   blog-api:
+    restart: always
     depends_on:
       - consul
       - couchbase1
@@ -135,6 +146,7 @@ services:
       - "5011"
 
   blog-api-2:
+    restart: always
     depends_on:
       - consul
       - couchbase1
@@ -164,6 +176,6 @@ networks:
       config:
         - subnet: 172.16.101.0/24
 volumes:
-  couchbase1:
-  couchbase2:
-  couchbase3:
+  couchbase1-data:
+  couchbase2-data:
+  couchbase3-data:
