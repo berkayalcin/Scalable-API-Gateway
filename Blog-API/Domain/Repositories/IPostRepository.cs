@@ -8,5 +8,6 @@ namespace Blog.API.Domain.Repositories
     public interface IPostRepository
     {
         Task<List<Post>> GetAll();
+        Task<Post> Create(Post post);
     }
 }

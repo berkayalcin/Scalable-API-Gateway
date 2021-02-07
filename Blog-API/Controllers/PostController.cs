@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Blog.API.Domain.Models;
 using Blog.API.Domain.Services.Post;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -23,7 +24,14 @@ namespace Blog.API.Controllers
         public async Task<IActionResult> GetAll()
         {
             var posts = await _postService.GetAll();
-            return Ok("Working");
+            return Ok(posts);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] PostDto post)
+        {
+            post = await _postService.Create(post);
+            return Created("api/Post", post);
         }
     }
 }
