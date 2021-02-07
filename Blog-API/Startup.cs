@@ -1,13 +1,16 @@
 using System;
 using System.Linq;
 using Blog.API.Domain.Mappers;
+using Blog.API.Domain.Models;
 using Blog.API.Domain.Repositories;
+using Blog.API.Domain.Services.ElasticSearch;
 using Blog.API.Domain.Services.Post;
 using Blog.API.Domain.Services.Providers;
 using Blog.API.Domain.Validators;
 using Blog.API.Extensions;
 using Couchbase.Configuration.Client;
 using Couchbase.Extensions.DependencyInjection;
+using Elasticsearch.Net;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
@@ -16,6 +19,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Nest;
 
 namespace Blog.API
 {
@@ -31,19 +35,12 @@ namespace Blog.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers(options =>
-
-                {
-                    options.AllowEmptyInputInBodyModelBinding = true;
-                })
-                .AddFluentValidation(o =>
-                    {
-                        o.RegisterValidatorsFromAssemblyContaining<PostValidator>();
-                    }
+            services.AddControllers(options => { options.AllowEmptyInputInBodyModelBinding = true; })
+                .AddFluentValidation(o => { o.RegisterValidatorsFromAssemblyContaining<PostValidator>(); }
                 )
                 .AddJsonOptions(opt => { opt.JsonSerializerOptions.IgnoreNullValues = true; }
                 );
-            
+
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "Blog_API", Version = "v1"}); });
             services.AddConsulConfig(Configuration);
             services.AddHealthChecks();
@@ -70,6 +67,24 @@ namespace Blog.API
 
             services.AddValidatorsFromAssemblyContaining<PostValidator>();
             services.AddAutoMapper(typeof(PostMapper));
+
+            AddElastic(services);
+        }
+
+        private void AddElastic(IServiceCollection services)
+        {
+            services.AddScoped<IElasticSearchService, ElasticSearchService>();
+            services.AddScoped<ElasticClient>(provider =>
+            {
+                var elasticOptions = new ElasticSearchOptions();
+                Configuration.Bind("ElasticSearchOptions", elasticOptions);
+                var uris = elasticOptions.HostUrls.Split(",").Select(u => new Uri(u)).ToArray();
+                var connectionPool = new SniffingConnectionPool(uris);
+                var settings = new ConnectionSettings(connectionPool);
+
+                var client = new ElasticClient(settings);
+                return client;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

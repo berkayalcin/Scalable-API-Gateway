@@ -21,9 +21,9 @@ namespace Blog.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] string query)
         {
-            var posts = await _postService.GetAll();
+            var posts = await _postService.GetAll(query);
             return Ok(posts);
         }
 
