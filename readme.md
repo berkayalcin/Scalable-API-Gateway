@@ -1,4 +1,6 @@
-# How Request Lifecycle Works
+# Scalable API Gateway
+
+## How Request Lifecycle Works
 
 <center>
 
