@@ -45,14 +45,14 @@ namespace Blog.API.Domain.Services.Post
                                 .AutoGenerateSynonymsPhraseQuery(false)
                             )
                         )
-                        .StoredFields(sf =>
-                            sf.Field(f => f.Name).Field(f => f.Id)
-                        )
                 );
 
+            if (!search.IsValid)
+                return null;
 
-            var posts = await _postRepository.GetAll();
-            return null;
+            var ids = search.Documents.Select(d => d.Id.ToString()).ToList();
+            var posts = await _postRepository.GetAll(ids);
+            return _mapper.Map<List<PostDto>>(posts);
         }
 
         public async Task<PostDto> Create(PostDto postDto)

@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Blog.API.Domain.Entities;
 using Blog.API.Domain.Models;
 using Blog.API.Domain.Services.Providers;
+using Couchbase;
 using Couchbase.Core;
 using Couchbase.IO;
 
@@ -18,10 +20,13 @@ namespace Blog.API.Domain.Repositories
             _postsBucket = postCouchbaseProvider.GetBucket();
         }
 
-        public async Task<List<Post>> GetAll()
+        public async Task<List<Post>> GetAll(List<string> ids)
         {
-            var pong = _postsBucket.Ping();
-            return null;
+            var getDocumentTasks = new List<Task<IDocumentResult<Post>>>();
+            ids.ForEach(x => getDocumentTasks.Add(_postsBucket.GetDocumentAsync<Post>(x)));
+            var results = await Task.WhenAll(getDocumentTasks);
+
+            return results.Select(r => r.Document.Content).ToList();
         }
 
         public async Task<Post> Create(Post post)
