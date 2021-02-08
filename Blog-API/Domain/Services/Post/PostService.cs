@@ -26,39 +26,31 @@ namespace Blog.API.Domain.Services.Post
 
         public async Task<List<PostDto>> GetAll(string query)
         {
-            var searchResponse = await _elasticSearchService.Client.SearchAsync<PostDto>(s =>
-                s.Index("posts")
-                    .Query(q =>
-                        q.Match(m =>
-                            m.Field(f => f.IsDeleted)
-                                .Query("false")
-                        ) &&
-                        q.QueryString(c => c
-                            .Fields(f =>
-                                f.Field(p => p.Name)
-                                    .Field(p => p.ShortDescription)
-                                    .Field(p => p.FullDescription)
+            var search = _elasticSearchService.Client
+                .Search<PostDto>(s =>
+                    s.Index("posts")
+                        .Query(q =>
+                            q.MultiMatch(c => c
+                                .Fields(p => p.Field(f => f.Name))
+                                .Analyzer("standard")
+                                .Boost(1.1)
+                                .Query(query)
+                                .Fuzziness(Fuzziness.AutoLength(3, 6))
+                                .Lenient()
+                                .FuzzyTranspositions()
+                                .MinimumShouldMatch(2)
+                                .Operator(Operator.Or)
+                                .FuzzyRewrite(MultiTermQueryRewrite.TopTermsBlendedFreqs(10))
+                                .Name("named_query")
+                                .AutoGenerateSynonymsPhraseQuery(false)
                             )
-                            .Boost(1.1)
-                            .Query(query)
-                            .Analyzer("standard")
-                            .DefaultOperator(Operator.Or)
-                            .Lenient()
-                            .AnalyzeWildcard()
-                            .MinimumShouldMatch("40%")
-                            .FuzzyPrefixLength(0)
-                            .FuzzyMaxExpansions(50)
-                            .FuzzyTranspositions()
-                            .AutoGenerateSynonymsPhraseQuery(false)
                         )
-                    )
-                    .StoredFields(sf =>
-                        sf.Fields(f => f.Id, f => f.Name)
-                    )
-            );
+                        .StoredFields(sf =>
+                            sf.Field(f => f.Name).Field(f => f.Id)
+                        )
+                );
 
 
-            
             var posts = await _postRepository.GetAll();
             return null;
         }
@@ -68,7 +60,6 @@ namespace Blog.API.Domain.Services.Post
             var post = _mapper.Map<Entities.Post>(postDto);
             post = await _postRepository.Create(post);
             await _elasticSearchService.AddOrUpdate(post, "posts");
-
             return _mapper.Map<PostDto>(post);
         }
     }

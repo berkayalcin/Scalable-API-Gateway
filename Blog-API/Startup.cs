@@ -81,7 +81,7 @@ namespace Blog.API
                 var uris = elasticOptions.HostUrls.Split(",").Select(u => new Uri(u)).ToArray();
                 var connectionPool = new SniffingConnectionPool(uris);
                 var settings = new ConnectionSettings(connectionPool);
-
+                settings.DefaultFieldNameInferrer(p => p);
                 var client = new ElasticClient(settings);
                 return client;
             });

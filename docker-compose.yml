@@ -7,7 +7,7 @@ services:
     image: couchbase/server
     restart: always
     volumes:
-        - couchbase1-data:/var/lib/couchbase1/data
+      - couchbase1-data:/var/lib/couchbase1/data
     networks:
       couchbase-net:
         ipv4_address: 172.16.101.11
@@ -90,15 +90,16 @@ services:
     expose:
       - "8500"
     command: agent -server -bootstrap -ui -client=0.0.0.0
-    networks: 
+    networks:
       couchbase-net:
         ipv4_address: 172.16.101.17
   gateway:
     restart: always
     depends_on:
-      - blog-api
+      - blog-api-1
       - blog-api-2
       - blog-api-3
+      - blog-api-4
       - couchbase1
       - couchbase2
       - couchbase3
@@ -122,7 +123,7 @@ services:
       - "5001"
     links:
       - consul
-  blog-api:
+  blog-api-1:
     restart: always
     depends_on:
       - consul
@@ -139,7 +140,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://0.0.0.0:5011
-      - SERVICE_URL=http://blog-api:5011
+      - SERVICE_URL=http://blog-api-1:5011
     networks:
       couchbase-net:
         ipv4_address: 172.16.101.16
@@ -147,6 +148,12 @@ services:
       - "5011:5011"
     expose:
       - "5011"
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+        reservations:
+          memory: 75M
   blog-api-2:
     restart: always
     depends_on:
@@ -164,7 +171,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://0.0.0.0:5013
-      - SERVICE_URL=http://blog-api:5013
+      - SERVICE_URL=http://blog-api-2:5013
     networks:
       couchbase-net:
         ipv4_address: 172.16.101.19
@@ -172,6 +179,12 @@ services:
       - "5013:5013"
     expose:
       - "5013"
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+        reservations:
+          memory: 75M
   blog-api-3:
     restart: always
     depends_on:
@@ -189,14 +202,51 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://0.0.0.0:5015
-      - SERVICE_URL=http://blog-api:5015
+      - SERVICE_URL=http://blog-api-3:5015
     networks:
       couchbase-net:
-        ipv4_address: 172.16.101.21
+        ipv4_address: 172.16.101.20
     ports:
       - "5015:5015"
     expose:
       - "5015"
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+        reservations:
+          memory: 75M
+  blog-api-4:
+    restart: always
+    depends_on:
+      - consul
+      - couchbase1
+      - couchbase2
+      - couchbase3
+      - es01
+      - es02
+      - es03
+    image: blog-api
+    build:
+      context: .
+      dockerfile: Dockerfile-Blog-API
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://0.0.0.0:5017
+      - SERVICE_URL=http://blog-api-4:5017
+    networks:
+      couchbase-net:
+        ipv4_address: 172.16.101.27
+    ports:
+      - "5017:5017"
+    expose:
+      - "5017"
+    deploy:
+      resources:
+        limits:
+          memory: 150M
+        reservations:
+          memory: 75M
   es01:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
     container_name: es01

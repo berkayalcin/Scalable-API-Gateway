@@ -1,33 +1,14 @@
 {
   "Routes": [
     {
-      "DownstreamPathTemplate": "/api/post",
+      "DownstreamPathTemplate": "/v1/post",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "blog-api",
-          "Port": 5011
-        },
-        {
-          "Host": "blog-api-1",
-          "Port": 5013
-        }
-      ],
-      "UpstreamPathTemplate": "/v1/post",
-      "FileCacheOptions": {
-        "TtlSeconds": 15
-      },
-      "RateLimitOptions": {
-        "ClientWhitelist": [],
-        "EnableRateLimiting": true,
-        "Period": "1s",
-        "PeriodTimespan": 1,
-        "Limit": 10
-      },
-      "ServiceName": "BlogService",
       "LoadBalancerOptions": {
-        "Type": "RoundRobin"
-      }
+        "Type": "LeastConnection"
+      },
+      "UpstreamPathTemplate": "/v1/post",
+      "ServiceName": "BlogService",
+      "UseServiceDiscovery": true
     }
   ],
   "GlobalConfiguration": {
@@ -38,8 +19,7 @@
       "Scheme": "http",
       "Host": "consul",
       "Port": 8500,
-      "Type": "PollConsul",
-      "PollingInterval": 100
+      "Type": "Consul"
     },
     "DangerousAcceptAnyServerCertificateValidator": true
   }

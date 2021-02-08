@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Blog.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("v1/[controller]")]
     public class PostController : ControllerBase
     {
         private readonly ILogger<PostController> _logger;
@@ -30,6 +30,7 @@ namespace Blog.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PostDto post)
         {
+            _logger.LogInformation("Request Arrived");
             post = await _postService.Create(post);
             return Created("api/Post", post);
         }
